@@ -1,0 +1,117 @@
+// Whitespace and Comments
+WHITESPACE = _{ " " | "\t" | "\r" }
+NEWLINE = _{ "\n" ~ WHITESPACE* }
+COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ NEWLINE? }
+ELSE = _{ "else" }
+
+// Entry Point
+program = { SOI ~ (NEWLINE | COMMENT)* ~ statement* ~ (NEWLINE | COMMENT)* ~ EOI }
+
+// General Block Rule
+block = { statement ~ (NEWLINE ~ statement)* }
+
+// Main Function Block
+main_block = {
+    "on the iron throne:" ~ NEWLINE ~
+    (NEWLINE | WHITESPACE)* ~
+    block
+}
+
+// Statement Variants
+statement = {
+    main_block |
+    function_declaration |
+    conditional |
+    for_loop |
+    while_loop |
+    return_statement |
+    variable_declaration |
+    assignment |
+    function_call_stmt |
+    speak_statement
+}
+
+// Variable Declaration
+variable_declaration = {
+    identifier ~ "is a" ~ data_type ~ "with" ~ expression
+}
+
+// Supported Data Types
+data_type = { "scroll" | "blade" | "wine" | "vow" | "sigil" | "void" }
+
+// Function Declaration
+function_declaration = {
+    "we declare" ~ identifier ~ "with" ~ parameter_list ~ "->" ~ (NEWLINE | WHITESPACE)* ~
+    "council says:" ~ (NEWLINE | WHITESPACE)* ~
+    block
+}
+
+parameter_list = { identifier ~ ("," ~ identifier)* }
+
+// Function Call (as expression or statement)
+function_call = { identifier ~ "with" ~ argument_list }
+function_call_stmt = { function_call }
+argument_list = { expression ~ ("," ~ expression)* }
+
+// Return Statement
+return_statement = { "return" ~ expression }
+
+// Assignment
+assignment = { identifier ~ "=" ~ expression }
+
+// Speak Statement
+speak_statement = { "speak" ~ expression }
+
+// Conditional
+conditional = {
+    "if" ~ expression ~ ":" ~ NEWLINE ~
+    block ~
+    ("else:" ~ NEWLINE ~ block)?
+}
+
+// For Loop
+for_loop = {
+    "the realm marches" ~ integer_literal ~ "times:" ~ NEWLINE ~
+    block
+}
+
+// While Loop
+while_loop = {
+    "while" ~ expression ~ ":" ~ NEWLINE ~
+    block
+}
+
+// Expressions
+expression = { binary_expr }
+binary_expr = { unary_expr ~ (binary_op ~ unary_expr)* }
+unary_expr = { unary_op* ~ primary }
+primary = {
+    "(" ~ expression ~ ")" |
+    function_call |
+    string_literal |
+    float_literal |
+    integer_literal |
+    boolean_literal |
+    char_literal |
+    input_statement |
+    identifier
+}
+
+// Operators
+binary_op = { "+" | "-" | "*" | "/" | ">" | "<" | "==" | "!=" }
+unary_op = { "-" | "!" }
+
+// Literals
+string_literal = { "\"" ~ string_inner ~ "\"" }
+string_inner = { ( "\\\"" | "\\n" | !"\"" ~ ANY )* }
+
+integer_literal = { "-"? ~ ASCII_DIGIT+ }
+float_literal = { "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
+boolean_literal = { "aye" | "nay" }
+char_literal = { "'" ~ (!"'" ~ ANY) ~ "'" }
+
+// Input
+input_statement = { identifier ~ "speaks for input" }
+
+// Identifier
+identifier = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }

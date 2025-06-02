@@ -1,6 +1,23 @@
 [package]
 name = "mid-valyrian"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+authors = ["Oishik Biswas biswasoishik@gmail.com"]
+description = "A Mid Valyrian programming language interpreter written in Rust, inspired by Game of Thrones."
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/oishik-biswas/mid-valyrian"
+keywords = ["interpreter", "language", "pest", "valyrian", "got"]
+categories = ["command-line-utilities", "parsing", "compilers"]
+homepage = "https://github.com/oishik-biswas/mid-valyrian"
 
 [dependencies]
+pest = "2.7"
+pest_derive = "2.7"
+thiserror = "1.0"             # for better error handling
+colored = "2.1"               # for colored CLI output
+clap = { version = "4.5", features = ["derive"] }  # for building a CLI
+anyhow = "1.0"                # optional: for flexible error propagation
+
+[dev-dependencies]
+pretty_assertions = "1.4"    # for better test failure messages
