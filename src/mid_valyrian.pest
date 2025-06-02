@@ -8,7 +8,7 @@ ELSE = _{ "else" }
 program = { SOI ~ (NEWLINE | COMMENT)* ~ statement* ~ (NEWLINE | COMMENT)* ~ EOI }
 
 // General Block Rule
-block = { statement ~ (NEWLINE ~ statement)* }
+block = { (statement | COMMENT | NEWLINE)+ }
 
 // Main Function Block
 main_block = {
@@ -46,12 +46,14 @@ function_declaration = {
     block
 }
 
-parameter_list = { identifier ~ ("," ~ identifier)* }
+parameter_list = { (identifier ~ ("," ~ identifier)*)? }
+argument_list = { (expression ~ ("," ~ expression)*)? }
+
 
 // Function Call (as expression or statement)
 function_call = { identifier ~ "with" ~ argument_list }
 function_call_stmt = { function_call }
-argument_list = { expression ~ ("," ~ expression)* }
+
 
 // Return Statement
 return_statement = { "return" ~ expression }

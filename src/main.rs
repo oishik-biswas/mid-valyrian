@@ -1,6 +1,6 @@
 use clap::{Arg, Command, ArgAction};
 use colored::*;
-use mid_valyrian::{run_file, ValyrianError};
+use mid_valyrian::run_file;
 
 fn main() {
     print_banner();
@@ -24,7 +24,11 @@ fn main() {
         )
         .get_matches();
 
-    let file_path = matches.get_one::<String>("file").expect("required");
+    let file_path = matches
+    .get_one::<String>("file")
+    .expect("required")
+    .trim();
+
     let debug = matches.get_flag("debug");
 
     // Enforce .mv extension

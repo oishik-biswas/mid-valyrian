@@ -1,0 +1,30 @@
+// Hello World in Mid Valyrian - The Ancient Language
+
+on the iron throne:
+    // Variable declarations using Valyrian types
+    greeting is a scroll with "Valar Morghulis"
+    house is a scroll with "Targaryen"
+    dragons is a blade with 3
+    temperature is a wine with 98.6
+    is_alive is a vow with aye
+    sigil_char is a sigil with '🐉'
+    
+    // Display our greeting
+    speak "=== Welcome to the Seven Kingdoms ==="
+    speak greeting
+    speak "House: " + house
+    speak "Dragons in our army: "
+    speak dragons
+    speak "Temperature of dragonfire: "
+    speak temperature
+    speak "Are the dragons alive? "
+    speak is_alive
+    speak "Our house sigil: "
+    speak sigil_char
+    
+    // Demonstrate arithmetic
+    total_power is a blade with dragons * 100
+    speak "Total dragon power: "
+    speak total_power
+    
+    speak "=== The realm prospers! ==="

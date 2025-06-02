@@ -21,3 +21,7 @@ anyhow = "1.0"                # optional: for flexible error propagation
 
 [dev-dependencies]
 pretty_assertions = "1.4"    # for better test failure messages
+
+[profile.dev]
+warnings = false
+

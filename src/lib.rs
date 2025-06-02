@@ -32,7 +32,8 @@ use std::path::Path;
 pub fn run_file<P: AsRef<Path>>(path: P, debug: bool) -> Result<(), ValyrianError> {
     let path_ref = path.as_ref();
 
-    if !path_ref.ends_with(".mv") {
+    // ✅ Proper extension check
+    if path_ref.extension().and_then(|s| s.to_str()) != Some("mv") {
         return Err(ValyrianError::ParseError("File must end with .mv".to_string()));
     }
     

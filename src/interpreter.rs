@@ -23,6 +23,9 @@ impl Interpreter {
             println!("🐉 AST: {:#?}", program);
         }
 
+        // println!("Number of statements in program: {}", program.statements.len());
+        // println!("Program statement[0]: {:?}", program.statements.get(0));
+
         for statement in &program.statements {
             if let Statement::FunctionDeclaration { name, parameters, body } = statement {
                 self.functions.insert(name.clone(), (parameters.clone(), body.clone()));
@@ -50,6 +53,8 @@ impl Interpreter {
         &mut self,
         statement: &Statement
     ) -> Result<Option<ControlFlow>, ValyrianError> {
+
+        
         if self.debug {
             println!("🏰 Executing: {:?}", statement);
         }

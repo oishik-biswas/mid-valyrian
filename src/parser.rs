@@ -32,11 +32,26 @@ fn parse_statement(pair: pest::iterators::Pair<Rule>) -> Result<Statement, Valyr
 
     match inner.as_rule() {
         Rule::main_block => {
-            let body = inner
-                .into_inner()
-                .filter(|p| p.as_rule() == Rule::statement)
-                .map(parse_statement)
-                .collect::<Result<Vec<_>, _>>()?;
+            // inner contains NEWLINEs, WHITESPACE, and one block pair
+            let mut body = Vec::new();
+
+            for p in inner.into_inner() {
+                match p.as_rule() {
+                    Rule::block => {
+                        // The block contains statements, comments, and newlines
+                        for inner_p in p.into_inner() {
+                            if inner_p.as_rule() == Rule::statement {
+                                body.push(parse_statement(inner_p)?);
+                            }
+                            // ignore comments and newlines here
+                        }
+                    }
+                    _ => {
+                        // ignore other tokens (e.g. NEWLINE, WHITESPACE)
+                    }
+                }
+            }
+
             Ok(Statement::MainBlock(body))
         }
 
@@ -44,9 +59,11 @@ fn parse_statement(pair: pest::iterators::Pair<Rule>) -> Result<Statement, Valyr
             let mut inner_rules = inner.into_inner();
             let name = inner_rules.next().unwrap().as_str().to_string();
             let data_type_str = inner_rules.next().unwrap().as_str();
-            let value_expr = inner_rules.next().ok_or_else(|| {
-                ValyrianError::ParseError("Missing expression in variable declaration".into())
-            })?;
+            let value_expr = inner_rules
+                .next()
+                .ok_or_else(|| {
+                    ValyrianError::ParseError("Missing expression in variable declaration".into())
+                })?;
             let value = parse_expression(value_expr)?;
             let data_type = DataType::from_str(data_type_str).ok_or_else(|| {
                 ValyrianError::ParseError(format!("Unknown type: {}", data_type_str))
@@ -110,7 +127,9 @@ fn parse_statement(pair: pest::iterators::Pair<Rule>) -> Result<Statement, Valyr
 
             for stmt in inner_rules {
                 match stmt.as_rule() {
-                    Rule::ELSE => in_else = true,
+                    Rule::ELSE => {
+                        in_else = true;
+                    }
                     Rule::statement => {
                         let parsed = parse_statement(stmt)?;
                         if in_else {
@@ -167,13 +186,12 @@ fn parse_statement(pair: pest::iterators::Pair<Rule>) -> Result<Statement, Valyr
             Ok(Statement::Speak(parse_expression(expr)?))
         }
 
-        _ => Err(ValyrianError::ParseError(format!(
-            "Unknown statement type: {:?}",
-            inner.as_rule()
-        ))),
+        _ =>
+            Err(
+                ValyrianError::ParseError(format!("Unknown statement type: {:?}", inner.as_rule()))
+            ),
     }
 }
-
 
 fn parse_expression(pair: pest::iterators::Pair<Rule>) -> Result<Expression, ValyrianError> {
     match pair.as_rule() {
@@ -198,23 +216,56 @@ fn parse_expression(pair: pest::iterators::Pair<Rule>) -> Result<Expression, Val
             Ok(left)
         }
 
+        // Rule::unary_expr => {
+        //     let mut inner = pair.into_inner();
+        //     let op_str = inner.next().unwrap().as_str();
+        //     let operator = match op_str {
+        //         "-" => UnaryOperator::Minus,
+        //         "!" => UnaryOperator::Not,
+        //         _ => {
+        //             return Err(
+        //                 ValyrianError::ParseError(format!("Unknown unary operator: {}", op_str))
+        //             );
+        //         }
+        //     };
+        //     let operand = parse_expression(inner.next().unwrap())?;
+        //     Ok(Expression::Unary {
+        //         operator,
+        //         operand: Box::new(operand),
+        //     })
+        // }
+
         Rule::unary_expr => {
             let mut inner = pair.into_inner();
-            let op_str = inner.next().unwrap().as_str();
-            let operator = match op_str {
-                "-" => UnaryOperator::Minus,
-                "!" => UnaryOperator::Not,
+
+            // Peek at first token
+            let first = inner.next().unwrap();
+            let op = match first.as_rule() {
+                Rule::unary_op => {
+                    let op_str = first.as_str();
+                    let operator = match op_str {
+                        "-" => UnaryOperator::Minus,
+                        "!" => UnaryOperator::Not,
+                        _ => {
+                            return Err(
+                                ValyrianError::ParseError(
+                                    format!("Unknown unary operator: {}", op_str)
+                                )
+                            );
+                        }
+                    };
+                    let operand = parse_expression(inner.next().unwrap())?;
+                    return Ok(Expression::Unary {
+                        operator,
+                        operand: Box::new(operand),
+                    });
+                }
                 _ => {
-                    return Err(
-                        ValyrianError::ParseError(format!("Unknown unary operator: {}", op_str))
-                    );
+                    // no unary operator, so the whole unary_expr is just a primary
+                    // parse_expression on the pair directly
+                    return parse_expression(first);
                 }
             };
-            let operand = parse_expression(inner.next().unwrap())?;
-            Ok(Expression::Unary {
-                operator,
-                operand: Box::new(operand),
-            })
         }
 
         Rule::primary => parse_expression(pair.into_inner().next().unwrap()),
@@ -224,6 +275,7 @@ fn parse_expression(pair: pest::iterators::Pair<Rule>) -> Result<Expression, Val
         Rule::integer_literal => {
             let value = pair
                 .as_str()
+                .trim()
                 .parse::<i64>()
                 .map_err(|_|
                     ValyrianError::ParseError(format!("Invalid integer: {}", pair.as_str()))
@@ -233,6 +285,7 @@ fn parse_expression(pair: pest::iterators::Pair<Rule>) -> Result<Expression, Val
         Rule::float_literal => {
             let value = pair
                 .as_str()
+                .trim()
                 .parse::<f64>()
                 .map_err(|_|
                     ValyrianError::ParseError(format!("Invalid float: {}", pair.as_str()))
